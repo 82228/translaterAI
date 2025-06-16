@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            margin: 0;
+            padding: 10px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            font-family: Arial, sans-serif;
+            color: #333;
+            cursor: default;
+            user-select: text;
+            overflow: auto;
+            box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+        }
+        #translation-text {
+            white-space: pre-wrap;
+            word-break: break-word;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+<div id="translation-text"></div>
+
+<script>
+    window.electronAPI.onSetTranslation(({text, width, height}) => {
+        const textElement = document.getElementById('translation-text');
+        textElement.textContent = text;
+
+        // 根据内容调整滚动条
+        // if (textElement.scrollHeight > height) {
+        //     textElement.style.overflowY = 'scroll';
+        // }
+    });
+</script>
+</body>
+</html>

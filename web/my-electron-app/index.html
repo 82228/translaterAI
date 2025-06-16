@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>知译小助手</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.9.0/dist/axios.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      button {
+        padding: 10px 15px;
+        background: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      #screenshot-container {
+        margin-top: 20px;
+        border: 1px solid #ddd;
+        max-width: 100%;
+      }
+      #screenshot {
+        max-width: 100%;
+      }
+      #state {
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        /* 默认状态 */
+        background: #e8f4ff;
+        color: #1890ff;
+      }
+
+      /* 翻译中动画 */
+      #state::before {
+        content: "";
+        width: 14px;
+        height: 14px;
+        border: 2px solid #1890ff;
+        border-top-color: transparent;
+        border-radius: 50%;
+        margin-right: 8px;
+        animation: spin 1s linear infinite;
+      }
+
+      /* 翻译成功样式 */
+      #state.translated {
+        background: #f6ffed;
+        color: #52c41a;
+        padding-left: 32px;
+      }
+
+      #state.translated::before {
+        content: "✓";
+        animation: checkAppear 0.5s ease;
+        margin-right: 4px;
+        font-weight: bold;
+        border: none;
+        margin-left: -24px;
+      }
+
+      /* 加载旋转动画 */
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      /* 对勾出现动画 */
+      @keyframes checkAppear {
+        0% {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* 可选：添加动态文字效果 */
+      #state::after {
+        constent:'翻译中';
+        animation: dotPulse 1.5s infinite steps(4);
+      }
+
+      #state.translated::after {
+        animation: none;
+      }
+
+      @keyframes dotPulse {
+        25% { content: "翻译中."; }
+        50% { content: "翻译中.."; }
+        75% { content: "翻译中..."; }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>知译小助手</h1>
+    <button id="capture-btn">选取翻译区域 (Ctrl+Shift+X)</button>
+    <div id="screenshot-container" style="display: none">
+      <h2>翻译区域:</h2>
+      <img id="screenshot" src="" />
+      <div id="state"></div>
+      <div id="translation-result"></div>
+    </div>
+
+    <script type="module">
+      // import { postFileFun} from "./Api/index.js";
+      // async function postFile(url){
+      //   try{
+      //     const {data} = await postFileFun(url);
+      //     const {Result} = data;
+      //     console.log('Response:',Result);
+      //     // 不再在主窗口显示结果，结果将在翻译窗口显示
+      //     return Result;
+      //   }catch (error){
+      //     console.log('psotFileError:',error);
+      //     throw error;
+      //   }
+      // }
+      document.getElementById("capture-btn").addEventListener("click", () => {
+        window.electronAPI.createScreenshotWindow();
+      });
+      window.electronAPI.onScreenshotCaptured((dataURL) => {
+        const container = document.getElementById("screenshot-container");
+        const img = document.getElementById("screenshot");
+
+        img.src = dataURL;
+        container.style.display = "block";
+      });
+      window.electronAPI.translationState((state)=>{
+        const stateDiv = document.getElementById('state');
+        const resultDiv = document.getElementById('translation-result');
+        stateDiv.innerText = state.text;
+        if(state.code===2){
+          stateDiv.classList.add("translated");
+          resultDiv.innerText = state.result;
+        }else{
+          stateDiv.classList.remove("translated");
+        }
+      })
+    </script>
+  </body>
+</html>

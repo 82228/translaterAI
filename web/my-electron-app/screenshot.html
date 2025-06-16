@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: transparent;
+      }
+      #overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        cursor: crosshair;
+      }
+      #selection {
+        position: absolute;
+        border: 2px dashed #fff;
+        background: rgba(0, 120, 255, 0.3);
+        box-sizing: border-box;
+        display: none; /* 初始隐藏选择框 */
+      }
+      #instructions {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-family: Arial, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="overlay"></div>
+    <div id="selection"></div>
+    <div id="instructions">拖动鼠标选择区域，释放鼠标完成截图 (ESC取消)</div>
+
+    <script>
+      const overlay = document.getElementById("overlay");
+      const selection = document.getElementById("selection");
+
+      let winPos = { x: 0, y: 0, scale: 1 };
+      let startX, startY;
+      let isSelecting = false;
+
+      // 接收窗口位置信息和缩放因子
+      window.electronAPI.onWindowPosition((event, position) => {
+        winPos = position;
+        winPos.scale = winPos.scale || 1; // 如果没有传递缩放因子，默认为1
+      });
+      // 将物理像素转换为CSS像素
+      function toCSSPixels(value) {
+        return value / winPos.scale;
+      }
+
+      handleMouseDown = (e) => {
+        isSelecting = true;
+        startX = e.screenX - winPos.x;
+        startY = e.screenY - winPos.y;
+
+        selection.style.display = "block";
+        selection.style.left = `${startX}px`;
+        selection.style.top = `${startY}px`;
+        selection.style.width = "0";
+        selection.style.height = "0";
+      };
+
+      handleMouseMove = (e) => {
+        if (!isSelecting) return;
+
+        const currentX = e.screenX - winPos.x;
+        const currentY = e.screenY - winPos.y;
+
+        // 计算选择框的位置和尺寸
+        const left = Math.min(startX, currentX);
+        const top = Math.min(startY, currentY);
+        const right = Math.max(startX, currentX);
+        const bottom = Math.max(startY, currentY);
+        const width = right - left;
+        const height = bottom - top;
+
+        selection.style.left = `${left}px`;
+        selection.style.top = `${top}px`;
+        selection.style.width = `${width}px`;
+        selection.style.height = `${height}px`;
+      };
+
+      handleMouseUp = (e) => {
+        if (!isSelecting) return;
+
+        const endX = e.screenX - winPos.x;
+        const endY = e.screenY - winPos.y;
+
+        // 计算最终选择区域
+        const left = Math.min(startX, endX);
+        const top = Math.min(startY, endY);
+        const right = Math.max(startX, endX);
+        const bottom = Math.max(startY, endY);
+        const width = right - left;
+        const height = bottom - top;
+
+        if (width > 10 && height > 10) {
+          const rect = {
+            x: left,
+            y: top,
+            width: width,
+            height: height,
+          };
+
+          window.electronAPI.captureScreenshot(rect);
+        }
+
+        cleanupSelection();
+        window.electronAPI.closeScreenshot();
+      };
+
+      function cleanupSelection() {
+        isSelecting = false;
+        selection.style.display = "none";
+        selection.style.width = "0";
+        selection.style.height = "0";
+        overlay.removeEventListener("mousedown", handleMouseDown);
+        overlay.removeEventListener("mousemove", handleMouseMove);
+        overlay.removeEventListener("mouseup", handleMouseUp);
+        overlay.style.display = "none";
+      }
+
+      overlay.addEventListener("mousedown", handleMouseDown);
+      overlay.addEventListener("mousemove", handleMouseMove);
+      overlay.addEventListener("mouseup", handleMouseUp);
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          cleanupSelection();
+          window.electronAPI.closeScreenshot();
+        }
+      });
+    </script>
+  </body>
+</html>

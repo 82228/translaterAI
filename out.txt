@@ -1,0 +1,6 @@
+func main () l
+senvern := http.Senven{tAddr: “:80810 了
+http.HandLeFunc(@@v“/fiLe“ ,controLLer.FiLe)
+http.HandLe ( 怀 v“/upLoads/“ ,http .StrnipPrefix (“/U[
+enrn:= Senver.ListenAndSenve()
+if ern 1= nil 【
