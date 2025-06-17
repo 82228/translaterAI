@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"mvc/controller"
+	"translaterAI/controller"
+
 	"net/http"
 )
 
