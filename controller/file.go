@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"mvc/pkg/param"
-	"mvc/server"
+	"translaterAI/pkg/param"
+	"translaterAI/server"
+
 	"net/http"
 	"os"
 	"os/exec"
